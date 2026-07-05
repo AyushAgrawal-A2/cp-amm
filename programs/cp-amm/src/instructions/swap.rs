@@ -1,8 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::{
-    associated_token::AssociatedToken,
-    token_interface::{self, Mint, TokenAccount, TokenInterface},
-};
+use anchor_spl::token_interface::{self, Mint, TokenAccount, TokenInterface};
 
 use crate::{swap_amount, AMMError, LiquidityPoolConfig, LIQUIDITY_POOL_SEED};
 
@@ -59,11 +56,8 @@ pub struct Swap<'info> {
     )]
     pub payer_mint_b_ata: Box<InterfaceAccount<'info, TokenAccount>>,
 
-    pub associated_token_program: Program<'info, AssociatedToken>,
     pub token_program_mint_a: Interface<'info, TokenInterface>,
     pub token_program_mint_b: Interface<'info, TokenInterface>,
-    pub token_program_liquidity_pool_mint: Interface<'info, TokenInterface>,
-    pub system_program: Program<'info, System>,
 }
 
 pub fn handle_swap(
