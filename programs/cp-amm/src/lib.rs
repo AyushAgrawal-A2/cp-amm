@@ -31,4 +31,13 @@ pub mod cp_amm {
     pub fn withdraw_liquidity(ctx: Context<WithdrawLiquidity>, amount_lp: u64) -> Result<()> {
         handle_withdraw_liquidity(ctx, amount_lp)
     }
+
+    pub fn swap(
+        ctx: Context<Swap>,
+        amount_a_in: u64,
+        amount_b_in: u64,
+        min_amount_out: u64,
+    ) -> Result<()> {
+        handle_swap(ctx, amount_a_in, amount_b_in, min_amount_out)
+    }
 }

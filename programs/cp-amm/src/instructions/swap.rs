@@ -66,7 +66,12 @@ pub struct Swap<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn handle_swap(ctx: Context<Swap>, amount_a_in: u64, amount_b_in: u64) -> Result<()> {
+pub fn handle_swap(
+    ctx: Context<Swap>,
+    amount_a_in: u64,
+    amount_b_in: u64,
+    min_amount_out: u64,
+) -> Result<()> {
     require!(
         amount_a_in == 0 || amount_b_in == 0,
         AMMError::InvalidArguments
@@ -132,7 +137,10 @@ pub fn handle_swap(ctx: Context<Swap>, amount_a_in: u64, amount_b_in: u64) -> Re
             ctx.accounts.token_program_mint_b.key(),
         )
     };
-    require!(amount_in > 0 && amount_out > 0, AMMError::InvalidAmount);
+    require!(
+        amount_in > 0 && amount_out > min_amount_out,
+        AMMError::InvalidAmount
+    );
 
     token_interface::transfer_checked(
         CpiContext::new(
