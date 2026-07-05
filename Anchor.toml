@@ -6,10 +6,7 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-cp_amm = "29tsSibY75sYcwXXYkJe1eQxt38F5N6TxQ7Uswrw3A1o"
-
-[registry]
-url = "https://api.apr.dev"
+cp_amm = "XRv9BHseB1DJkudJ7ZHew1ahSNXmQCs2k1HUPTQgkHE"
 
 [provider]
 cluster = "localnet"
@@ -17,3 +14,5 @@ wallet = "~/.config/solana/id.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 \"tests/**/*.ts\""
+
+[hooks]
