@@ -77,6 +77,8 @@ pub fn handle_create_pool(ctx: Context<CreatePool>, fee: u16) -> Result<()> {
     ctx.accounts
         .liquidity_pool_config
         .set_inner(LiquidityPoolConfig {
+            vault_a: 0,
+            vault_b: 0,
             fee,
             liquidity_pool_mint_bump: ctx.bumps.liquidity_pool_mint,
             bump: ctx.bumps.liquidity_pool_config,

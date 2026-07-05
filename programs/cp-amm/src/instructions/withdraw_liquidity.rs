@@ -25,6 +25,7 @@ pub struct WithdrawLiquidity<'info> {
     pub mint_b: Box<InterfaceAccount<'info, Mint>>,
 
     #[account(
+        mut,
         seeds = [LIQUIDITY_POOL_SEED, mint_a.key().as_ref(), mint_b.key().as_ref()],
         bump = liquidity_pool_config.bump
     )]
@@ -93,11 +94,27 @@ pub fn handle_withdraw_liquidity(ctx: Context<WithdrawLiquidity>, amount_lp: u64
 
     let (amount_a, amount_b) = withdraw_liquidity_amount(
         amount_lp,
-        ctx.accounts.liquidity_pool_vault_a.amount,
-        ctx.accounts.liquidity_pool_vault_b.amount,
+        ctx.accounts.liquidity_pool_config.vault_a,
+        ctx.accounts.liquidity_pool_config.vault_b,
         ctx.accounts.liquidity_pool_mint.supply,
     )?;
-    require!(amount_a > 0 && amount_b > 0, AMMError::InvalidAmount);
+    require!(
+        amount_a <= ctx.accounts.liquidity_pool_config.vault_a
+            && amount_b <= ctx.accounts.liquidity_pool_config.vault_b,
+        AMMError::InvalidAmount
+    );
+    ctx.accounts.liquidity_pool_config.vault_a = ctx
+        .accounts
+        .liquidity_pool_config
+        .vault_a
+        .checked_sub(amount_a)
+        .ok_or(AMMError::Underflow)?;
+    ctx.accounts.liquidity_pool_config.vault_b = ctx
+        .accounts
+        .liquidity_pool_config
+        .vault_b
+        .checked_sub(amount_b)
+        .ok_or(AMMError::Underflow)?;
 
     let mint_a_address = ctx.accounts.mint_a.key();
     let mint_b_address = ctx.accounts.mint_b.key();

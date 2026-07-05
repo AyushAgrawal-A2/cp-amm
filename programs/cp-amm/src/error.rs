@@ -10,6 +10,8 @@ pub enum AMMError {
     DivideByZero,
     #[msg("Overflow")]
     Overflow,
+    #[msg("Underflow")]
+    Underflow,
     #[msg("Insufficient supply")]
     InsufficientSupply,
 }

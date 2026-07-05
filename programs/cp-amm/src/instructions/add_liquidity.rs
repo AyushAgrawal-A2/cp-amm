@@ -25,6 +25,7 @@ pub struct AddLiquidity<'info> {
     pub mint_b: Box<InterfaceAccount<'info, Mint>>,
 
     #[account(
+        mut,
         seeds = [LIQUIDITY_POOL_SEED, mint_a.key().as_ref(), mint_b.key().as_ref()],
         bump = liquidity_pool_config.bump
     )]
@@ -100,14 +101,27 @@ pub fn handle_add_liquidity(
     let (amount_a, amount_b, amount_lp) = add_liquidity_amount(
         amount_a_desired,
         amount_b_desired,
-        ctx.accounts.liquidity_pool_vault_a.amount,
-        ctx.accounts.liquidity_pool_vault_b.amount,
+        ctx.accounts.liquidity_pool_config.vault_a,
+        ctx.accounts.liquidity_pool_config.vault_b,
         ctx.accounts.liquidity_pool_mint.supply,
     )?;
     require!(
         amount_a > 0 && amount_b > 0 && amount_lp > 0,
         AMMError::InvalidAmount
     );
+
+    ctx.accounts.liquidity_pool_config.vault_a = ctx
+        .accounts
+        .liquidity_pool_config
+        .vault_a
+        .checked_add(amount_a)
+        .ok_or(AMMError::Overflow)?;
+    ctx.accounts.liquidity_pool_config.vault_b = ctx
+        .accounts
+        .liquidity_pool_config
+        .vault_b
+        .checked_add(amount_b)
+        .ok_or(AMMError::Overflow)?;
 
     token_interface::transfer_checked(
         CpiContext::new(

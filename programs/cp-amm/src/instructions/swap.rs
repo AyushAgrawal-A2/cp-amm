@@ -19,6 +19,7 @@ pub struct Swap<'info> {
     pub mint_b: Box<InterfaceAccount<'info, Mint>>,
 
     #[account(
+        mut,
         seeds = [LIQUIDITY_POOL_SEED, mint_a.key().as_ref(), mint_b.key().as_ref()],
         bump = liquidity_pool_config.bump
     )]
@@ -91,10 +92,22 @@ pub fn handle_swap(
     ) = if amount_a_in == 0 {
         let amount_a_out = swap_amount(
             amount_b_in,
-            ctx.accounts.liquidity_pool_vault_b.amount,
-            ctx.accounts.liquidity_pool_vault_a.amount,
+            ctx.accounts.liquidity_pool_config.vault_b,
+            ctx.accounts.liquidity_pool_config.vault_a,
             ctx.accounts.liquidity_pool_config.fee,
         )?;
+        ctx.accounts.liquidity_pool_config.vault_a = ctx
+            .accounts
+            .liquidity_pool_config
+            .vault_a
+            .checked_sub(amount_a_out)
+            .ok_or(AMMError::Underflow)?;
+        ctx.accounts.liquidity_pool_config.vault_b = ctx
+            .accounts
+            .liquidity_pool_config
+            .vault_b
+            .checked_add(amount_b_in)
+            .ok_or(AMMError::Overflow)?;
         (
             amount_b_in,
             ctx.accounts.mint_b.decimals,
@@ -112,10 +125,22 @@ pub fn handle_swap(
     } else {
         let amount_b_out = swap_amount(
             amount_a_in,
-            ctx.accounts.liquidity_pool_vault_a.amount,
-            ctx.accounts.liquidity_pool_vault_b.amount,
+            ctx.accounts.liquidity_pool_config.vault_a,
+            ctx.accounts.liquidity_pool_config.vault_b,
             ctx.accounts.liquidity_pool_config.fee,
         )?;
+        ctx.accounts.liquidity_pool_config.vault_a = ctx
+            .accounts
+            .liquidity_pool_config
+            .vault_a
+            .checked_add(amount_a_in)
+            .ok_or(AMMError::Overflow)?;
+        ctx.accounts.liquidity_pool_config.vault_b = ctx
+            .accounts
+            .liquidity_pool_config
+            .vault_b
+            .checked_sub(amount_b_out)
+            .ok_or(AMMError::Underflow)?;
         (
             amount_a_in,
             ctx.accounts.mint_a.decimals,
